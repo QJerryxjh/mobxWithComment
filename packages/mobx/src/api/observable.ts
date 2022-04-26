@@ -42,6 +42,9 @@ export type CreateObservableOptions = {
     equals?: IEqualsComparer<any>
     deep?: boolean
     defaultDecorator?: Annotation
+    /**
+     * 是否用proxy实现
+     */
     proxy?: boolean
     autoBind?: boolean
 }
@@ -56,10 +59,19 @@ export const defaultCreateObservableOptions: CreateObservableOptions = {
 }
 Object.freeze(defaultCreateObservableOptions)
 
+/**
+ * 获取观察对象配置,没有传option则使用默认option
+ */
 export function asCreateObservableOptions(thing: any): CreateObservableOptions {
     return thing || defaultCreateObservableOptions
 }
 
+/**
+ * 创建注解
+ */
+/**
+ * 深度observable注解
+ */
 const observableAnnotation = createObservableAnnotation(OBSERVABLE)
 const observableRefAnnotation = createObservableAnnotation(OBSERVABLE_REF, {
     enhancer: referenceEnhancer
@@ -70,6 +82,7 @@ const observableShallowAnnotation = createObservableAnnotation(OBSERVABLE_SHALLO
 const observableStructAnnotation = createObservableAnnotation(OBSERVABLE_STRUCT, {
     enhancer: refStructEnhancer
 })
+// 创建一个装饰函数并且挂深度注解在函数上
 const observableDecoratorAnnotation = createDecoratorAnnotation(observableAnnotation)
 
 export function getEnhancerFromOptions(options: CreateObservableOptions): IEnhancer<any> {
@@ -80,9 +93,15 @@ export function getEnhancerFromOptions(options: CreateObservableOptions): IEnhan
         : getEnhancerFromAnnotation(options.defaultDecorator)
 }
 
+/**
+ * 从options中获取注解
+ * @param options
+ * @returns
+ */
 export function getAnnotationFromOptions(
     options?: CreateObservableOptions
 ): Annotation | undefined {
+    // 如果options中有defaultDecorator则取其值,如果有options但没有defaultDecorator,则为自动的注解,否则为空
     return options ? options.defaultDecorator ?? createAutoAnnotation(options) : undefined
 }
 
@@ -97,6 +116,7 @@ export function getEnhancerFromAnnotation(annotation?: Annotation): IEnhancer<an
 function createObservable(v: any, arg2?: any, arg3?: any) {
     // @observable someProp;
     if (isStringish(arg2)) {
+        // 把某个属性改为observable,为目标储存深度observable注解
         storeAnnotation(v, arg2, observableAnnotation)
         return
     }
@@ -134,6 +154,9 @@ function createObservable(v: any, arg2?: any, arg3?: any) {
     // anything else
     return observable.box(v, arg2)
 }
+/**
+ * 把observableAnnotation上值添加到createObservable
+ */
 Object.assign(createObservable, observableDecoratorAnnotation)
 
 export interface IObservableFactory extends Annotation, PropertyDecorator {

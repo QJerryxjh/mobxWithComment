@@ -131,12 +131,18 @@ export function isComputingDerivation() {
     return globalState.trackingDerivation !== null // filter out actions inside computations
 }
 
+/**
+ * 查看是否允许状态在action之外修改
+ * @param atom
+ * @returns
+ */
 export function checkIfStateModificationsAreAllowed(atom: IAtom) {
     if (!__DEV__) {
         return
     }
     const hasObservers = atom.observers_.size > 0
     // Should not be possible to change observed state outside strict mode, except during initialization, see #563
+    // enforceActions为'always' 或者 [enforceActions为 observed(默认)且有观察者]
     if (
         !globalState.allowStateChanges &&
         (hasObservers || globalState.enforceActions === "always")

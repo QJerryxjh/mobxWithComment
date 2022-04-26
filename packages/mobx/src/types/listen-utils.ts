@@ -4,10 +4,21 @@ export interface IListenable {
     changeListeners_: Function[] | undefined
 }
 
+/**
+ * 是否有监听修改事件
+ * @param listenable 可监听对象
+ * @returns
+ */
 export function hasListeners(listenable: IListenable) {
     return listenable.changeListeners_ !== undefined && listenable.changeListeners_.length > 0
 }
 
+/**
+ * 注册监听
+ * @param listenable 可监听对象
+ * @param handler 监听处理函数
+ * @returns 取消监听函数
+ */
 export function registerListener(listenable: IListenable, handler: Function): Lambda {
     const listeners = listenable.changeListeners_ || (listenable.changeListeners_ = [])
     listeners.push(handler)
@@ -19,6 +30,12 @@ export function registerListener(listenable: IListenable, handler: Function): La
     })
 }
 
+/**
+ * 通知观察者更改内容
+ * @param listenable 可监听对象
+ * @param change 更改内容信息对象
+ * @returns
+ */
 export function notifyListeners<T>(listenable: IListenable, change: T) {
     const prevU = untrackedStart()
     let listeners = listenable.changeListeners_

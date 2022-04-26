@@ -70,11 +70,13 @@ export function makeAutoObservable<T extends object, AdditionalKeys extends Prop
         return extendObservable(target, target, overrides, options)
     }
 
+    // 为target创建adm管理器
     const adm: ObservableObjectAdministration = asObservableObject(target, options)[$mobx]
 
     // Optimization: cache keys on proto
     // Assumes makeAutoObservable can be called only once per object and can't be used in subclass
     if (!target[keysSymbol]) {
+        // 如果target原型上没有[keysSymbol]属性,则为其原型上增加此属性,值为target及其原型上排除[$mobx]和constructor的键集合
         const proto = Object.getPrototypeOf(target)
         const keys = new Set([...ownKeys(target), ...ownKeys(proto)])
         keys.delete("constructor")
@@ -85,6 +87,7 @@ export function makeAutoObservable<T extends object, AdditionalKeys extends Prop
     startBatch()
     try {
         target[keysSymbol].forEach(key =>
+            // 为target上的key添加注解
             adm.make_(
                 key,
                 // must pass "undefined" for { key: undefined }

@@ -14,6 +14,14 @@ import {
     ownKeys
 } from "../internal"
 
+/**
+ * 为元素子集都添加可观察
+ * @param target 在observable.object调用时为管理对象,在makeAutoObservable调用时为实例值
+ * @param properties 原对象
+ * @param annotations 注解
+ * @param options 配置
+ * @returns
+ */
 export function extendObservable<A extends Object, B extends Object>(
     target: A,
     properties: B,
@@ -38,11 +46,14 @@ export function extendObservable<A extends Object, B extends Object>(
         }
     }
     // Pull descriptors first, so we don't have to deal with props added by administration ($mobx)
+    // 返回对象所有键的装饰
     const descriptors = getOwnPropertyDescriptors(properties)
 
+    // target有管理器则获取此管理器,没有则创建一个管理器返回
     const adm: ObservableObjectAdministration = asObservableObject(target, options)[$mobx]
     startBatch()
     try {
+        // 遍历对象的key值,为管理器添加扩展
         ownKeys(descriptors).forEach(key => {
             adm.extend_(
                 key,

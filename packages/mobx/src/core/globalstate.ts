@@ -2,7 +2,7 @@ import { IDerivation, IObservable, Reaction, die, getGlobal } from "../internal"
 import { ComputedValue } from "./computedvalue"
 
 /**
- * These values will persist if global state is reset
+ * 所含字段在重置时依然会被保留,仅在测试环境中使用
  */
 const persistentKeys: (keyof MobXGlobals)[] = [
     "mobxGuid",
@@ -34,10 +34,16 @@ export class MobXGlobals {
     /**
      * globally unique token to signal unchanged
      */
+    /**
+     * 全局唯一标志,未修改
+     */
     UNCHANGED: IUNCHANGED = {}
 
     /**
      * Currently running derivation
+     */
+    /**
+     * 当前正在运行的derivation
      */
     trackingDerivation: IDerivation | null = null
 
@@ -107,6 +113,9 @@ export class MobXGlobals {
     /**
      * Globally attached error handlers that react specifically to errors in reactions
      */
+    /**
+     * reaction执行发生错误时的错误回调
+     */
     globalReactionErrorHandlers: ((error: any, derivation: IDerivation) => void)[] = []
 
     /**
@@ -138,9 +147,15 @@ export class MobXGlobals {
      */
     suppressReactionErrors = false
 
+    /**
+     * 根据configure和环境是否支持proxy来确定是否支持proxy,默认为true
+     */
     useProxies = true
     /*
      * print warnings about code that would fail if proxies weren't available
+     */
+    /**
+     * proxy不可用的时候是否要打警告
      */
     verifyProxies = false
 
@@ -156,34 +171,43 @@ let canMergeGlobalState = true
 let isolateCalled = false
 
 export let globalState: MobXGlobals = (function () {
-    let global = getGlobal()
+    let global = getGlobal() // 浏览器 -> window
     if (global.__mobxInstanceCount > 0 && !global.__mobxGlobals) {
+        // 有mobx实例,但是没有mobx设置的全局说明信息
         canMergeGlobalState = false
     }
     if (global.__mobxGlobals && global.__mobxGlobals.version !== new MobXGlobals().version) {
+        // 有全局说明信息但是信息指明的版本与当前使用版本不一致
         canMergeGlobalState = false
     }
 
     if (!canMergeGlobalState) {
+        // 存在其他实例,并且版本不兼容,不能合并
         // Because this is a IIFE we need to let isolateCalled a chance to change
         // so we run it after the event loop completed at least 1 iteration
+        // IIFE调用取值isolateCalled为初始值,初始化配置未被执行,为保证在取值在初始化配置之后,使用定时器
         setTimeout(() => {
             if (!isolateCalled) {
+                // 不能合并,且配置设置了不分离
                 die(35)
             }
         }, 1)
         return new MobXGlobals()
     } else if (global.__mobxGlobals) {
+        // __mobxGlobals存在并且version相同
         global.__mobxInstanceCount += 1
         if (!global.__mobxGlobals.UNCHANGED) {
             global.__mobxGlobals.UNCHANGED = {}
         } // make merge backward compatible
         return global.__mobxGlobals
     } else {
+        // 没有__mobxGlobals,且__mobxInstanceCount小于等于0
         global.__mobxInstanceCount = 1
         return (global.__mobxGlobals = new MobXGlobals())
     }
 })()
+
+console.log(globalState)
 
 export function isolateGlobalState() {
     if (
@@ -191,12 +215,15 @@ export function isolateGlobalState() {
         globalState.inBatch ||
         globalState.isRunningReactions
     ) {
+        // 全局配置调用时间必须在更新调度功能开始之前
         die(36)
     }
     isolateCalled = true
     if (canMergeGlobalState) {
+        // 如果能合并全局mobx
         let global = getGlobal()
         if (--global.__mobxInstanceCount === 0) {
+            // 如果当前没有待合并的mobx,则把__mobxGlobals信息清空
             global.__mobxGlobals = undefined
         }
         globalState = new MobXGlobals()
@@ -210,6 +237,9 @@ export function getGlobalState(): any {
 /**
  * For testing purposes only; this will break the internal state of existing observables,
  * but can be used to get back at a stable state after throwing errors
+ */
+/**
+ * 仅用于测试,用于在捕获错误的时候回退state
  */
 export function resetGlobalState() {
     const defaultGlobals = new MobXGlobals()

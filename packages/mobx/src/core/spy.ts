@@ -4,6 +4,10 @@ import { IObjectDidChange } from "./../types/observableobject"
 import { IArrayDidChange } from "./../types/observablearray"
 import { Lambda, globalState, once, ISetDidChange, IMapDidChange } from "../internal"
 
+/**
+ * 是否在变化通知全局监听
+ * @returns 是dev环境且有全局的监听变化函数
+ */
 export function isSpyEnabled() {
     return __DEV__ && !!globalState.spyListeners.length
 }

@@ -80,7 +80,9 @@ const errors: typeof niceErrors = __DEV__ ? niceErrors : ({} as any)
 export function die(error: string | keyof typeof errors, ...args: any[]): never {
     if (__DEV__) {
         let e: any = typeof error === "string" ? error : errors[error]
-        if (typeof e === "function") e = e.apply(null, args as any)
+        if (typeof e === "function") {
+            e = e.apply(null, args as any)
+        }
         throw new Error(`[MobX] ${e}`)
     }
     throw new Error(

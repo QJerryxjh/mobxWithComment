@@ -21,6 +21,8 @@ export interface IEnhancer<T> {
     (newValue: T, oldValue: T | undefined, name: string): T
 }
 
+// enhancer: 劫持器
+
 export function deepEnhancer(v, _, name) {
     // it is an observable already, done
     if (isObservable(v)) {

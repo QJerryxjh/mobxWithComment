@@ -34,7 +34,13 @@ export type AnnotationsMap<T, AdditionalFields extends PropertyKey> = {
     [P in Exclude<keyof T, "toString">]?: AnnotationMapEntry
 } & Record<AdditionalFields, AnnotationMapEntry>
 
+/**
+ * 判断是否为注解
+ * @param thing 需要判断的值
+ * @returns
+ */
 export function isAnnotation(thing: any) {
+    // 满足条件: 是对象或者是函数,并且其上有键为annotationType_的字符串值,且有make_函数和extend_函数
     return (
         // Can be function
         thing instanceof Object &&

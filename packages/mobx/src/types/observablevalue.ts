@@ -119,6 +119,11 @@ export class ObservableValue<T>
         }
     }
 
+    /**
+     *
+     * @param newValue 即将更改的值
+     * @returns
+     */
     private prepareNewValue_(newValue): T | IUNCHANGED {
         checkIfStateModificationsAreAllowed(this)
         if (hasInterceptors(this)) {
@@ -128,15 +133,21 @@ export class ObservableValue<T>
                 newValue
             })
             if (!change) {
+                // 没有修改
                 return globalState.UNCHANGED
             }
             newValue = change.newValue
         }
         // apply modifier
         newValue = this.enhancer(newValue, this.value_, this.name_)
+        // 新值与旧值一样,则不修改
         return this.equals(this.value_, newValue) ? globalState.UNCHANGED : newValue
     }
 
+    /**
+     * 设置新值
+     * @param newValue 新值
+     */
     setNewValue_(newValue: T) {
         const oldValue = this.value_
         this.value_ = newValue

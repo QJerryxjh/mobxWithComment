@@ -210,6 +210,11 @@ export class Reaction implements IDerivation, IReactionPublic {
     }
 }
 
+/**
+ * 订阅发生错误时,回调处理错误
+ * @param handler 错误处理函数
+ * @returns 移出错误监听
+ */
 export function onReactionError(handler: (error: any, derivation: IDerivation) => void): Lambda {
     globalState.globalReactionErrorHandlers.push(handler)
     return () => {

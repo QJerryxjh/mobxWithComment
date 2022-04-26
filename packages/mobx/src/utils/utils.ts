@@ -12,6 +12,9 @@ Object.freeze(EMPTY_ARRAY)
 export const EMPTY_OBJECT = {}
 Object.freeze(EMPTY_OBJECT)
 
+/**
+ * 具名,可调用
+ */
 export interface Lambda {
     (): void
     name?: string
@@ -20,6 +23,9 @@ export interface Lambda {
 const hasProxy = typeof Proxy !== "undefined"
 const plainObjectString = Object.toString()
 
+/**
+ * 查看是否有Proxy可用
+ */
 export function assertProxies() {
     if (!hasProxy) {
         die(
@@ -30,8 +36,12 @@ export function assertProxies() {
     }
 }
 
+/**
+ * 警告proxy的需求信息
+ */
 export function warnAboutProxyRequirement(msg: string) {
     if (__DEV__ && globalState.verifyProxies) {
+        // 只在开发环境并且useProxy配置为ifavailable
         die(
             "MobX is currently configured to be able to run in ES5 mode, but in ES5 MobX won't be able to " +
                 msg
@@ -45,6 +55,7 @@ export function getNextId() {
 
 /**
  * Makes sure that the provided function is invoked at most once.
+ * 包裹函数只会被调用一次
  */
 export function once(func: Lambda): Lambda {
     let invoked = false
@@ -57,6 +68,9 @@ export function once(func: Lambda): Lambda {
     }
 }
 
+/**
+ * 空操作
+ */
 export const noop = () => {}
 
 export function isFunction(fn: any): fn is Function {
@@ -67,6 +81,9 @@ export function isString(value: any): value is string {
     return typeof value === "string"
 }
 
+/**
+ * 这样的值可以作为对象的key
+ */
 export function isStringish(value: any): value is string | number | symbol {
     const t = typeof value
     switch (t) {
@@ -82,6 +99,11 @@ export function isObject(value: any): value is Object {
     return value !== null && typeof value === "object"
 }
 
+/**
+ * 是否是普通对象
+ * @param value 需要判断的对象
+ * @returns boolean值
+ */
 export function isPlainObject(value: any) {
     if (!isObject(value)) {
         return false
@@ -111,6 +133,9 @@ export function isGenerator(obj: any): boolean {
     return false
 }
 
+/**
+ * 添加隐藏属性(此处的隐藏指不可枚举)
+ */
 export function addHiddenProp(object: any, propName: PropertyKey, value: any) {
     defineProperty(object, propName, {
         enumerable: false,
@@ -120,6 +145,9 @@ export function addHiddenProp(object: any, propName: PropertyKey, value: any) {
     })
 }
 
+/**
+ * 添加隐藏且不可赋值的属性
+ */
 export function addHiddenFinalProp(object: any, propName: PropertyKey, value: any) {
     defineProperty(object, propName, {
         enumerable: false,
@@ -129,6 +157,12 @@ export function addHiddenFinalProp(object: any, propName: PropertyKey, value: an
     })
 }
 
+/**
+ * 返回一个函数,用于判断是否为包装的构造函数的实例
+ * @param name 名称,在构造函数原型上加判断标识的key
+ * @param theClass 构造函数
+ * @returns 用于判断变量是否为 @param theClass 的实例
+ */
 export function createInstanceofPredicate<T>(
     name: string,
     theClass: new (...args: any[]) => T
@@ -151,6 +185,8 @@ export function isES6Set(thing: any): thing is Set<any> {
 const hasGetOwnPropertySymbols = typeof Object.getOwnPropertySymbols !== "undefined"
 
 /**
+ * 返回对象的keys,包括类型为Symbol的key(可枚举)
+ *
  * Returns the following: own enumerable keys and symbols.
  */
 export function getPlainObjectKeys(object: any) {
@@ -166,8 +202,11 @@ export function getPlainObjectKeys(object: any) {
     return [...keys, ...symbols.filter(s => objectPrototype.propertyIsEnumerable.call(object, s))]
 }
 
-// From Immer utils
-// Returns all own keys, including non-enumerable and symbolic
+/**
+ * 返回对象的keys,包括不可枚举值
+ * From Immer utils
+ * Returns all own keys, including non-enumerable and symbolic
+ */
 export const ownKeys: (target: any) => Array<string | symbol> =
     typeof Reflect !== "undefined" && Reflect.ownKeys
         ? Reflect.ownKeys
@@ -185,15 +224,24 @@ export function stringifyKey(key: any): string {
     return new String(key).toString()
 }
 
+/**
+ * 转换为原始值
+ */
 export function toPrimitive(value: any) {
     return value === null ? null : typeof value === "object" ? "" + value : value
 }
 
+/**
+ * 是否有某个属性
+ */
 export function hasProp(target: Object, prop: PropertyKey): boolean {
     return objectPrototype.hasOwnProperty.call(target, prop)
 }
 
 // From Immer utils
+/**
+ * 返回对象各个键的装饰器
+ */
 export const getOwnPropertyDescriptors =
     Object.getOwnPropertyDescriptors ||
     function getOwnPropertyDescriptors(target: any) {

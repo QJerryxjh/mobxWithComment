@@ -14,8 +14,16 @@ import {
 
 const AUTO = "true"
 
+/**
+ * 自动注解
+ */
 export const autoAnnotation: Annotation = createAutoAnnotation()
 
+/**
+ * 创建一个自动的注解
+ * @param options
+ * @returns
+ */
 export function createAutoAnnotation(options?: object): Annotation {
     return {
         annotationType_: AUTO,
@@ -81,11 +89,11 @@ function extend_(
     descriptor: PropertyDescriptor,
     proxyTrap: boolean
 ): boolean | null {
-    // getter -> computed
+    // 有get装饰,则为computed,getter -> computed
     if (descriptor.get) {
         return computed.extend_(adm, key, descriptor, proxyTrap)
     }
-    // lone setter -> action setter
+    // 有set装饰,则为action lone setter -> action setter
     if (descriptor.set) {
         // TODO make action applicable to setter and delegate to action.extend_
         return adm.defineProperty_(
@@ -98,10 +106,11 @@ function extend_(
         )
     }
     // other -> observable
-    // if function respect autoBind option
+    // 如果值是函数并且option中autoBind为true,则绑定this; if function respect autoBind option
     if (typeof descriptor.value === "function" && this.options_?.autoBind) {
         descriptor.value = descriptor.value.bind(adm.proxy_ ?? adm.target_)
     }
     let observableAnnotation = this.options_?.deep === false ? observable.ref : observable
+    // 注解对应key的属性
     return observableAnnotation.extend_(adm, key, descriptor, proxyTrap)
 }
